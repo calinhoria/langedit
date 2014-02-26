@@ -111,8 +111,9 @@
 						));
 						$prop -> push($vlabel);
 					}
+					$key1 = str_replace(".", "_", $key);
 					$vcontext = new ArrayData( array(
-						"ContextTitle" => $key,
+						"ContextTitle" => $key1,
 						"Labels" => $prop
 					));
 					$contexts -> push($vcontext);
@@ -139,7 +140,7 @@
 
 				$obj -> __set("Locale", $value);
 				$obj -> __set("LocaleName", i18n::get_locale_name($value));
-                $obj -> __set("Lang", i18n::get_lang_from_locale($value));
+				$obj -> __set("Lang", i18n::get_lang_from_locale($value));
 				$locales_list -> push($obj);
 			}
 
@@ -180,14 +181,17 @@
 
 					$this -> customise(array(
 						"Translations" => $this -> getYaml($_POST["loadfiles"]),
-						"Modules" => $files
+						"Modules" => $files,
+						"Locales" => $locales_list
 					));
 				}
 				else
 				{
 					$this -> customise(array(
 						"Modules" => $files,
-						"Locales" => $locales_list
+						"Translations" => $this -> getYaml($files -> filter(array('Locale' => $locales_list -> first() -> Locale)) -> first() -> Path),
+						"Locales" => $locales_list,
+						"CurrentLocale" => $locales_list -> first() -> LocaleName
 					));
 				}
 				$content = $this -> renderWith('LanguageAdmin_Content');
@@ -199,7 +203,9 @@
 
 				$this -> customise(array(
 					"Modules" => $files,
-					"Locales" => $locales_list
+					"Translations" => $this -> getYaml($files -> filter(array('Locale' => $locales_list -> first() -> Locale)) -> first() -> Path),
+					"Locales" => $locales_list,
+					"CurrentLocale" => $locales_list -> first() -> LocaleName
 				));
 
 				$content = $this -> renderWith($this -> getViewer('translate'));

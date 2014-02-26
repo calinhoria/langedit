@@ -16,7 +16,7 @@
     <div style="padding: 20px;margin-top: 90px;padding-top: 20px" id="content">
         <p id="Form_EditForm_error" style="display: none" class="message good">
         </p>
-        <h2 id="current_locale"></h2>
+        <h2 id="current_locale">$CurrentLocale</h2>
         <div>
             <label class="notranslate">Choose a module</label>
             <select class="dropdown has-chzn chzn-done" id="file_select" >
@@ -46,7 +46,7 @@
                 <label class="left notranslate" for="$Label" >$Label</label>
                 <div class="middleColumn">
 
-                    <input type="text" name="$Up.Up.Locale[$Up.ContextTitle][$Label]" value="$LabelValue.XML" class="text translate" id="$Up.ContextTitle$Label"/>  <button class="translate_button" type="button">Translate</button>
+                    <input type="text" name="$Up.Up.Locale[$Up.ContextTitle][$Label]" value="$LabelValue.XML" class="text translate" id="$Up.ContextID$Label"/>  <button class="translate_button" type="button">Translate</button>
                 </div>
             </div>
             <% end_loop  %>
@@ -99,14 +99,13 @@ $("body").on("click",".translate_button",function(e)
 
     var elementId = $(this).prev().attr("id");
 
-    //Call the Google API
-    $.ajax({
+  $.ajax({
         type : "GET",
-        url : "https://ajax.googleapis.com/ajax/services/language/translate",
-        dataType : 'jsonp',
+        url : "http://api.mymemory.translated.net/get",
+        dataType : 'json',
         cache: false,
         contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-        data : "v=1.0&q="+$("#"+elementId).val()+"&langpair=en|"+$("#locale_select option:selected").attr("lang"),
+        data : "mt=true&de=belut_calin@yahoo.com&q="+$("#"+elementId).val()+"&langpair=en|"+$("#locale_select option:selected").attr("lang"),
         success : function(iData){
 
             $("#"+elementId).val(iData["responseData"]["translatedText"]);
@@ -126,15 +125,15 @@ $("body").on("click",".translate_button",function(e)
 
         var selected = $("." + $("#locale_select").val() + "." + $("#file_select option:selected").text()).attr("url");
         var locale = $("#locale_select option:selected").text();
-        $.ajax({
-            type : "POST",data : {
-                loadfiles : selected,
-            }
-        }).done(function(msg) {
-
-            $("#current_locale").html(locale);
-            $("#lang_fields").html($(msg).find('#lang_fields').html());
-        });
+        // $.ajax({
+            // type : "POST",data : {
+                // loadfiles : selected,
+            // }
+        // }).done(function(msg) {
+//
+            // $("#current_locale").html(locale);
+            // $("#lang_fields").html($(msg).find('#lang_fields').html());
+        // });
         $("#file_select,#locale_select").change(function() {
             selected = $("." + $("#locale_select").val() + "." + $("#file_select option:selected").text()).attr("url");
             locale = $("#locale_select option:selected").text();
