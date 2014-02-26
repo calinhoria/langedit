@@ -1,0 +1,5 @@
+it_IT:
+  LanguageAdmin:
+    MENUTITLE: Translation
+  langedit:
+    SUCCESSFULL_COLLECT: 'The text was collected.'
