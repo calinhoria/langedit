@@ -43,7 +43,7 @@
             <input type="hidden" name="$Up.Locale[$ContextTitle]"/>
             <% loop Labels  %>
             <div  class="field text">
-                <label class="left notranslate" for="$Label" >$Label</label>
+                <label class="left notranslate" for="$Up.ContextID$Label" >$Label</label>
                 <div class="middleColumn">
 
                     <input type="text" name="$Up.Up.Locale[$Up.ContextTitle][$Label]" value="$LabelValue.XML" class="text translate" id="$Up.ContextID$Label"/>  <button class="translate_button" type="button">Translate</button>
@@ -139,7 +139,7 @@ $("body").on("click",".translate_button",function(e)
             locale = $("#locale_select option:selected").text();
             $.ajax({
                 type : "POST",
-                url:"http://gist.netechlab.it/admin/editlang/translate",
+                url:"/admin/editlang/translate",
                 data : {
                     loadfiles : selected,
                 }
