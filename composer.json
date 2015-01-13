@@ -1,0 +1,15 @@
+{
+	"name": "calinhoria/langedit",
+	"description": "Allows translation of yaml lang files from from back office.",
+	"type": "silverstripe-module",
+	"keywords": ["silverstripe", "langedit"],
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Belut Calin",
+			"email": "belut_calin@yahoo.come",
+			"homepage": "http://welltech.ro",
+			"role": "Developer"
+		}
+	]
+}
