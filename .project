@@ -5,6 +5,19 @@
 	<projects>
 	</projects>
 	<buildSpec>
+<<<<<<< HEAD
+=======
+		<buildCommand>
+			<name>com.aptana.editor.php.aptanaPhpBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.aptana.ide.core.unifiedBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+>>>>>>> 9ecb74019c2192214790dcc935c036dd9c1393fb
 	</buildSpec>
 	<natures>
 		<nature>com.aptana.editor.php.phpNature</nature>
