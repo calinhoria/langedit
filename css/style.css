@@ -1,0 +1,22 @@
+#content {
+	overflow: auto !important;
+	overflow-x: hidden !important;
+	position: absolute;
+	bottom: 0;
+	top: 0;
+	right: 0;
+	left: 0;
+}
+
+#langedit, body {
+	overflow: hidden;
+}
+#google_translate_element {
+	position: absolute;
+	z-index: 1000;
+	right: 0;
+	top: 0;
+}
+.hidden {
+	display: none;
+}

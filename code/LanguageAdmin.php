@@ -2,8 +2,8 @@
 class LanguageAdmin extends LeftAndMain {
     private static $menu_title = "Translations";
     static $modules = null;
-    
-        static function set_allowed_modules($modules) {
+
+    static function set_allowed_modules($modules) {
         self::$modules = $modules;
     }
 
@@ -18,10 +18,8 @@ class LanguageAdmin extends LeftAndMain {
     public function init() {
         parent::init();
 
-        //  die($_SERVER["DOCUMENT_ROOT"]);
-
-        //Requirements::css("langedit/css/style.css");
-        //Requirements::javascript("dashboard/javascript/jquery.flip.js");
+        Requirements::css(LANG_BASE . '/css/style.css');
+        Requirements::javascript(LANG_BASE . '/javascript/script.js');
 
     }
 
@@ -77,16 +75,6 @@ class LanguageAdmin extends LeftAndMain {
     }
 
     public function index($request) {
-
-        // try{
-        // $c = new TextCollector("it_IT");
-        // $c -> run(LanguageAdmin::$exclude_modules, true);
-        // }
-        // catch(ErrorException $e){
-        // die(print_r($e));
-        // }
-        //
-        //
 
         return $this -> translate($request);
     }
@@ -147,7 +135,6 @@ class LanguageAdmin extends LeftAndMain {
             $obj -> __set("Lang", i18n::get_lang_from_locale($value));
             $locales_list -> push($obj);
         }
-        
 
         if ($request -> isAjax()) {
 
@@ -166,7 +153,7 @@ class LanguageAdmin extends LeftAndMain {
                 if ($fh = fopen($file, "w")) {
                     fwrite($fh, $yml_file);
                     fclose($fh);
-                   file_get_contents("http://$_SERVER[HTTP_HOST]?flush");
+                    file_get_contents("http://$_SERVER[HTTP_HOST]?flush");
                 }
                 else {
                     throw new LogicException("Cannot write language file! Please check permissions of $langFile");

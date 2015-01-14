@@ -18,16 +18,19 @@
         <div>
             <label class="notranslate">Choose a module</label>
             <select class="dropdown has-chzn chzn-done" id="file_select" >
+                <% if Modules %>
                 <% loop Modules %>
                 <option class="$Locale $Module notranslate" url="$Path" value="$Path">$Module</option>
                 <% end_loop  %>
+                <% end_if %>
             </select>
             <label class="notranslate">Choose a locale</label>
             <select class="dropdown has-chzn chzn-done" id="locale_select" >
+                <% if Locales %>
                 <% loop Locales %>
-
                 <option class="notranslate" <% if First %>selected<% end_if  %> lang="$Lang" value="$Locale">$LocaleName</option>
                 <% end_loop  %>
+                <% end_if %>
             </select>
         </div>
         <form id="lang_fields">
@@ -57,98 +60,4 @@
             <% end_if  %>
         </form>
     </div>
-
 </div>
-<style>
-    #content {
-        overflow: auto !important;
-        overflow-x: hidden !important;
-        position: absolute;
-        bottom: 0;
-        top: 0;
-        right: 0;
-        left: 0;
-    }
-
-    #langedit, body {
-        overflow: hidden;
-    }
-    #google_translate_element {
-        position: absolute;
-        z-index: 1000;
-        right: 0;
-        top: 0;
-    }
-    .hidden {
-        display: none;
-    }
-</style>
-<script>
-    jQuery(document).ready(function($) {
-
-        // $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
-            // alert(thrownError);
-        // });
-        $("#file_select option").hide();
-        $("#file_select option." + $("#locale_select").val()).show();
-
-        $("#locale_select").change(function() {
-            $("#file_select option").hide();
-            $("#file_select option." + $("#locale_select").val()).show();
-        });
-
-        var selected = $("." + $("#locale_select").val() + "." + $("#file_select option:selected").text()).attr("url");
-        var locale = $("#locale_select option:selected").text();
-
-        $("#file_select,#locale_select").change(function() {
-            selected = $("." + $("#locale_select").val() + "." + $("#file_select option:selected").text()).attr("url");
-            locale = $("#locale_select option:selected").text();
-            $.ajax({
-                type : "POST",
-                url : "/admin/editlang/",
-                data : {
-                    loadfiles : selected,
-                }
-            }).done(function(msg) {
-                // alert(msg);
-                $("#current_locale").html(locale);
-                $("#lang_fields").html($(msg).find('#lang_fields').html());
-            });
-        });
-
-        $("#collect").click(function() {
-            $(this).addClass('loading');
-            var button = $(this);
-            button.addClass("loading");
-            $.ajax({
-                type : "POST",
-                url : "/admin/editlang/",
-                data : {
-                    collect : true,
-                }
-            }).done(function(msg) {
-                button.removeClass("loading");
-                $(".message").html("The translations were successfully collected.");
-                $(".message").fadeIn().delay(3000).fadeOut();
-                window.location = window.location;
-
-            });
-        });
-
-        $("#save").click(function() {
-            var button = $(this);
-            button.addClass("loading");
-            $.ajax({
-                type : "POST",
-                url : "/admin/editlang/",
-                data : $("#lang_fields").serialize()
-            }).done(function(msg) {
-                button.removeClass("loading");
-                $(".message").html("The translation was successfully saved.");
-                $(".message").fadeIn().delay(3000).fadeOut();
-
-            });
-        });
-    });
-
-</script>
