@@ -1,9 +1,11 @@
 <?php
-class LanguageAdmin extends LeftAndMain {
+class LanguageAdmin extends LeftAndMain
+{
     private static $menu_title = "Translations";
-    static $modules = null;
+    public static $modules = null;
 
-    static function set_allowed_modules($modules) {
+    public static function set_allowed_modules($modules)
+    {
         self::$modules = $modules;
     }
 
@@ -15,24 +17,22 @@ class LanguageAdmin extends LeftAndMain {
 
     private static $menu_icon = "langedit/images/icon.png";
 
-    public function init() {
+    public function init()
+    {
         parent::init();
 
         Requirements::css(LANG_BASE . '/css/style.css');
         Requirements::javascript(LANG_BASE . '/javascript/script.js');
-
     }
 
-    public function getFiles() {
-
+    public function getFiles()
+    {
         $files = LanguageAdmin::$modules;
         $valid_dirs = array();
         $yaml_files = new ArrayList();
 
         foreach ($files as $file) {
-
             if (is_dir($_SERVER["DOCUMENT_ROOT"] . "/" . $file)) {
-
                 if ((file_exists($_SERVER["DOCUMENT_ROOT"] . "/" . $file . "/_config.php") || $file == "themes")) {
                     $valid_dirs[] = $file;
                     $temp = "";
@@ -43,8 +43,7 @@ class LanguageAdmin extends LeftAndMain {
                         }
                         $temp = glob($_SERVER["DOCUMENT_ROOT"] . "/themes/$theme/lang/*.yml");
                         //die(print_r($temp));
-                    }
-                    else {
+                    } else {
                         $temp = glob($_SERVER["DOCUMENT_ROOT"] . "/" . $file . '/lang/*.yml');
                     }
                     if (is_array($temp)) {
@@ -57,14 +56,12 @@ class LanguageAdmin extends LeftAndMain {
                             $locales = "";
                             if (SiteTree::has_extension("Translatable")) {
                                 $locales = Translatable::get_allowed_locales();
-                            }
-                            else {
+                            } else {
                                 $locales = array("it_IT");
                             }
                             if (in_array($info["filename"], $locales)) {
                                 $yaml_files -> push($lang);
                             }
-
                         }
                     }
                 }
@@ -74,13 +71,14 @@ class LanguageAdmin extends LeftAndMain {
         return $yaml_files;
     }
 
-    public function index($request) {
-
+    public function index($request)
+    {
         return $this -> translate($request);
     }
 
-    static $allowed_actions = array('translate', );
-    public function getYaml($file) {
+    public static $allowed_actions = array('translate', );
+    public function getYaml($file)
+    {
         $yml_data = new ArrayList();
 
         $yml_file = sfYaml::load($file);
@@ -92,14 +90,14 @@ class LanguageAdmin extends LeftAndMain {
             foreach ($fields as $key => $properties) {
                 $prop = new ArrayList();
                 foreach ($properties as $klabel => $value) {
-                    $vlabel = new ArrayData( array(
+                    $vlabel = new ArrayData(array(
                         "Label" => $klabel,
                         "LabelValue" => $value
                     ));
                     $prop -> push($vlabel);
                 }
                 $key1 = str_replace(".", "_", $key);
-                $vcontext = new ArrayData( array(
+                $vcontext = new ArrayData(array(
                     "ContextTitle" => $key,
                     "ContextID" => $key1,
                     "Labels" => $prop
@@ -113,16 +111,17 @@ class LanguageAdmin extends LeftAndMain {
         return $yml_data;
     }
 
-    public function url($vars) {
+    public function url($vars)
+    {
         return sprintf("%s://%s%s", isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http', $_SERVER['HTTP_HOST'], $vars);
     }
 
-    public function translate(SS_HTTPRequest $request) {
+    public function translate(SS_HTTPRequest $request)
+    {
         $locales = "";
         if (SiteTree::has_extension("Translatable")) {
             $locales = Translatable::get_allowed_locales();
-        }
-        else {
+        } else {
             $locales = array("it_IT");
         }
 
@@ -137,12 +136,10 @@ class LanguageAdmin extends LeftAndMain {
         }
 
         if ($request -> isAjax()) {
-
             if (isset($_POST["collect"])) {
                 foreach ($locales as $value) {
                     $c = new TextCollector($value);
                     $c -> run(LanguageAdmin::$modules, true);
-
                 }
                 die(_t("SUCCESSFULL_COLLECT", "The text was collected."));
             }
@@ -154,8 +151,7 @@ class LanguageAdmin extends LeftAndMain {
                     fwrite($fh, $yml_file);
                     fclose($fh);
                     file_get_contents("http://$_SERVER[HTTP_HOST]?flush");
-                }
-                else {
+                } else {
                     throw new LogicException("Cannot write language file! Please check permissions of $langFile");
                 }
                 die();
@@ -171,8 +167,7 @@ class LanguageAdmin extends LeftAndMain {
                 ));
                 $content = $this -> renderWith('LanguageAdmin_Content');
                 return $content;
-            }
-            else {
+            } else {
                 $this -> customise(array(
                     "Modules" => $files,
                     "Translations" => $this -> getYaml($files -> filter(array('Locale' => $locales_list -> first() -> Locale)) -> first() -> Path),
@@ -182,10 +177,7 @@ class LanguageAdmin extends LeftAndMain {
                 $content = $this -> renderWith('LanguageAdmin_Content');
                 return $content;
             }
-
-        }
-        else {
-
+        } else {
             $files = $this -> getFiles();
 
             $this -> customise(array(
@@ -197,9 +189,6 @@ class LanguageAdmin extends LeftAndMain {
 
             $content = $this -> renderWith($this -> getViewer('translate'));
             return $content;
-
         }
-
     }
-
 }

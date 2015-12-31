@@ -25,7 +25,8 @@
  * @uses i18nEntityProvider
  * @uses i18n
  */
-class TextCollector extends Object {
+class TextCollector extends Object
+{
 
     protected $defaultLocale;
 
@@ -46,7 +47,8 @@ class TextCollector extends Object {
     /**
      * @param $locale
      */
-    public function __construct($locale = null) {
+    public function __construct($locale = null)
+    {
         $this->defaultLocale = ($locale) ? $locale : i18n::get_lang_from_locale(i18n::default_locale());
         $this->basePath = Director::baseFolder();
         $this->baseSavePath = Director::baseFolder();
@@ -54,12 +56,16 @@ class TextCollector extends Object {
         parent::__construct();
     }
 
-    public function setWriter($writer) {
+    public function setWriter($writer)
+    {
         $this->writer = $writer;
     }
 
-    public function getWriter() {
-        if(!$this->writer) $this->writer = new TextCollector_Writer_RailsYaml();
+    public function getWriter()
+    {
+        if (!$this->writer) {
+            $this->writer = new TextCollector_Writer_RailsYaml();
+        }
         return $this->writer;
     }
 
@@ -77,15 +83,19 @@ class TextCollector extends Object {
      * "translation backports" to older releases without removing strings these older releases
      * still rely on.
      */
-    public function run($restrictToModules = null, $mergeWithExisting = false) {
+    public function run($restrictToModules = null, $mergeWithExisting = false)
+    {
         $entitiesByModule = $this->collect($restrictToModules, $mergeWithExisting);
         // Write each module language file
-        if($entitiesByModule) foreach($entitiesByModule as $module => $entities) {
-            $this->getWriter()->write($entities, $this->defaultLocale, $this->baseSavePath . '/' . $module);
+        if ($entitiesByModule) {
+            foreach ($entitiesByModule as $module => $entities) {
+                $this->getWriter()->write($entities, $this->defaultLocale, $this->baseSavePath . '/' . $module);
+            }
         }
     }
 
-    public function collect($restrictToModules = null, $mergeWithExisting = false) {
+    public function collect($restrictToModules = null, $mergeWithExisting = false)
+    {
         $modules = $restrictToModules;
         $themeFolders = array();
         // $tmp_arr=array();
@@ -102,16 +112,16 @@ class TextCollector extends Object {
         // A master string tables array (one mst per module)
         $entitiesByModule = array();
 
-        foreach($modules as $index => $module){
-            if($module != 'themes') continue;
-            else {
+        foreach ($modules as $index => $module) {
+            if ($module != 'themes') {
+                continue;
+            } else {
                 $themes = scandir($this->basePath."/themes");
-                if(count($themes)){
-                    foreach($themes as $theme) {
-                        if(is_dir($this->basePath."/themes/".$theme)
-                                && substr($theme,0,1) != '.'
-                                && is_dir($this->basePath."/themes/".$theme."/templates")){
-
+                if (count($themes)) {
+                    foreach ($themes as $theme) {
+                        if (is_dir($this->basePath."/themes/".$theme)
+                                && substr($theme, 0, 1) != '.'
+                                && is_dir($this->basePath."/themes/".$theme."/templates")) {
                             $themeFolders[] = 'themes/'.$theme;
                         }
                     }
@@ -120,43 +130,46 @@ class TextCollector extends Object {
             }
         }
 
-        if(isset($themesInd)) {
+        if (isset($themesInd)) {
             unset($modules[$themesInd]);
         }
 
 
         $modules = array_merge($modules, $themeFolders);
 
-        foreach($modules as $module) {
-        
+        foreach ($modules as $module) {
             $isValidModuleFolder = (
                 is_dir("$this->basePath/$module")
-                && substr($module,0,1) != '.'
+                && substr($module, 0, 1) != '.'
                 && (
                     is_file("$this->basePath/$module/_config.php")
                     || is_dir("$this->basePath/$module/_config")
                 )
             ) || (
-                substr($module,0,7) == 'themes/'
+                substr($module, 0, 7) == 'themes/'
                 && is_dir("$this->basePath/$module")
             );
 
-            if(!$isValidModuleFolder) continue;
+            if (!$isValidModuleFolder) {
+                continue;
+            }
 
             // we store the master string tables
             $processedEntities = $this->processModule($module);
 
-            if(isset($entitiesByModule[$module])) {
+            if (isset($entitiesByModule[$module])) {
                 $entitiesByModule[$module] = array_merge_recursive($entitiesByModule[$module], $processedEntities);
             } else {
                 $entitiesByModule[$module] = $processedEntities;
             }
 
             // extract all entities for "foreign" modules (fourth argument)
-            foreach($entitiesByModule[$module] as $fullName => $spec) {
-                if(isset($spec[2]) && $spec[2] && $spec[2] != $module) {
+            foreach ($entitiesByModule[$module] as $fullName => $spec) {
+                if (isset($spec[2]) && $spec[2] && $spec[2] != $module) {
                     $othermodule = $spec[2];
-                    if(!isset($entitiesByModule[$othermodule])) $entitiesByModule[$othermodule] = array();
+                    if (!isset($entitiesByModule[$othermodule])) {
+                        $entitiesByModule[$othermodule] = array();
+                    }
                     unset($spec[2]);
                     $entitiesByModule[$othermodule][$fullName] = $spec;
                     unset($entitiesByModule[$module][$fullName]);
@@ -167,11 +180,13 @@ class TextCollector extends Object {
             // TODO Support all defined source formats through i18n::get_translators().
             //      Currently not possible because adapter instances can't be fully reset through the Zend API,
             //      meaning master strings accumulate across modules
-            if($mergeWithExisting) {
+            if ($mergeWithExisting) {
                 $adapter = Injector::inst()->create('i18nRailsYamlAdapter');
                 $masterFile = "{$this->basePath}/{$module}/lang/"
                     . $adapter->getFilenameForLocale($this->defaultLocale);
-                if(!file_exists($masterFile)) continue;
+                if (!file_exists($masterFile)) {
+                    continue;
+                }
 
                 $adapter->addTranslation(array(
                     'content' => $masterFile,
@@ -180,7 +195,7 @@ class TextCollector extends Object {
                 $entitiesByModule[$module] = array_merge(
                     array_map(
                         // Transform each master string from scalar value to array of strings
-                        function($v) {return array($v);},
+                        function ($v) {return array($v);},
                         $adapter->getMessages($this->defaultLocale)
                     ),
                     $entitiesByModule[$module]
@@ -198,7 +213,8 @@ class TextCollector extends Object {
         return $entitiesByModule;
     }
 
-    public function write($module, $entities) {
+    public function write($module, $entities)
+    {
         $this->getWriter()->write($entities, $this->defaultLocale, $this->baseSavePath . '/' . $module);
     }
 
@@ -210,30 +226,31 @@ class TextCollector extends Object {
      * @return array $entities An array of entities found in the files that comprise the module
      * @todo Why the type juggling for $this->collectFromBlah()? They always return arrays.
      */
-    protected function processModule($module) {
+    protected function processModule($module)
+    {
         $entities = array();
 
         // Search for calls in code files if these exists
         $fileList = array();
-        if(is_dir("$this->basePath/$module/code")) {
+        if (is_dir("$this->basePath/$module/code")) {
             $fileList = $this->getFilesRecursive("$this->basePath/$module/code");
-        } else if($module == FRAMEWORK_DIR || substr($module, 0, 7) == 'themes/') {
+        } elseif ($module == FRAMEWORK_DIR || substr($module, 0, 7) == 'themes/') {
             // framework doesn't have the usual module structure, so we'll scan all subfolders
             $fileList = $this->getFilesRecursive("$this->basePath/$module", null, null, '/\/(tests|dev)$/');
         }
-        foreach($fileList as $filePath) {
+        foreach ($fileList as $filePath) {
             // exclude ss-templates, they're scanned separately
-            if(substr($filePath,-3) == 'php') {
+            if (substr($filePath, -3) == 'php') {
                 $content = file_get_contents($filePath);
-                $entities = array_merge($entities,(array)$this->collectFromCode($content, $module));
+                $entities = array_merge($entities, (array)$this->collectFromCode($content, $module));
                 $entities = array_merge($entities, (array)$this->collectFromEntityProviders($filePath, $module));
             }
         }
 
         // Search for calls in template files if these exists
-        if(is_dir("$this->basePath/$module/")) {
+        if (is_dir("$this->basePath/$module/")) {
             $fileList = $this->getFilesRecursive("$this->basePath/$module/", null, 'ss');
-            foreach($fileList as $index => $filePath) {
+            foreach ($fileList as $index => $filePath) {
                 $content = file_get_contents($filePath);
                 // templates use their filename as a namespace
                 $namespace = basename($filePath);
@@ -254,7 +271,8 @@ class TextCollector extends Object {
      * @param string $module Module's name or 'themes'
      * @return array $entities An array of entities representing the extracted translation function calls in code
      */
-    public function collectFromCode($content, $module) {
+    public function collectFromCode($content, $module)
+    {
         $entities = array();
 
         $tokens = token_get_all("<?php\n" . $content);
@@ -262,26 +280,26 @@ class TextCollector extends Object {
         $inConcat = false;
         $finalTokenDueToArray = false;
         $currentEntity = array();
-        foreach($tokens as $token) {
-            if(is_array($token)) {
+        foreach ($tokens as $token) {
+            if (is_array($token)) {
                 list($id, $text) = $token;
 
-                if($inTransFn && $id == T_ARRAY) {
+                if ($inTransFn && $id == T_ARRAY) {
                     //raw 'array' token found in _t function, stop processing the tokens for this _t now
                     $finalTokenDueToArray = true;
                 }
 
-                if($id == T_STRING && $text == '_t') {
+                if ($id == T_STRING && $text == '_t') {
                     // start definition
                     $inTransFn = true;
-                } elseif($inTransFn && $id == T_VARIABLE) {
+                } elseif ($inTransFn && $id == T_VARIABLE) {
                     // Dynamic definition from provideEntities - skip
                     $inTransFn = false;
                     $inConcat = false;
                     $currentEntity = array();
-                } elseif($inTransFn && $id == T_CONSTANT_ENCAPSED_STRING) {
+                } elseif ($inTransFn && $id == T_CONSTANT_ENCAPSED_STRING) {
                     // Fixed quoting escapes, and remove leading/trailing quotes
-                    if(preg_match('/^\'/', $text)) {
+                    if (preg_match('/^\'/', $text)) {
                         $text = str_replace("\'", "'", $text);
                         $text = preg_replace('/^\'/', '', $text);
                         $text = preg_replace('/\'$/', '', $text);
@@ -291,17 +309,17 @@ class TextCollector extends Object {
                         $text = preg_replace('/"$/', '', $text);
                     }
 
-                    if($inConcat) {
+                    if ($inConcat) {
                         $currentEntity[count($currentEntity)-1] .= $text;
                     } else {
                         $currentEntity[] = $text;
                     }
                 }
-            } elseif($inTransFn && $token == '.') {
+            } elseif ($inTransFn && $token == '.') {
                 $inConcat = true;
-            } elseif($inTransFn && $token == ',') {
+            } elseif ($inTransFn && $token == ',') {
                 $inConcat = false;
-            } elseif($inTransFn && ($token == ')' || $finalTokenDueToArray || $token == '[')) {
+            } elseif ($inTransFn && ($token == ')' || $finalTokenDueToArray || $token == '[')) {
                 // finalize definition
                 $inTransFn = false;
                 $inConcat = false;
@@ -312,9 +330,9 @@ class TextCollector extends Object {
             }
         }
 
-        foreach($entities as $entity => $spec) {
+        foreach ($entities as $entity => $spec) {
             // call without master language definition
-            if(!$spec) {
+            if (!$spec) {
                 unset($entities[$entity]);
                 continue;
             }
@@ -337,17 +355,20 @@ class TextCollector extends Object {
      *
      * @todo Why the type juggling for $this->collectFromTemplate()? It always returns an array.
      */
-    public function collectFromTemplate($content, $fileName, $module, &$parsedFiles = array()) {
+    public function collectFromTemplate($content, $fileName, $module, &$parsedFiles = array())
+    {
         $entities = array();
 
         // Search for included templates
         preg_match_all('/<' . '% include +([A-Za-z0-9_]+) +%' . '>/', $content, $regs, PREG_SET_ORDER);
-        foreach($regs as $reg) {
+        foreach ($regs as $reg) {
             $includeName = $reg[1];
             $includeFileName = "{$includeName}.ss";
             $filePath = SSViewer::getTemplateFileByType($includeName, 'Includes');
-            if(!$filePath) $filePath = SSViewer::getTemplateFileByType($includeName, 'main');
-            if($filePath && !in_array($filePath, $parsedFiles)) {
+            if (!$filePath) {
+                $filePath = SSViewer::getTemplateFileByType($includeName, 'main');
+            }
+            if ($filePath && !in_array($filePath, $parsedFiles)) {
                 $parsedFiles[] = $filePath;
                 $includeContent = file_get_contents($filePath);
                 $entities = array_merge(
@@ -360,17 +381,17 @@ class TextCollector extends Object {
 
         // use parser to extract <%t style translatable entities
         $translatables = TextCollector_Parser::GetTranslatables($content);
-        $entities = array_merge($entities,(array)$translatables);
+        $entities = array_merge($entities, (array)$translatables);
 
         // use the old method of getting _t() style translatable entities
         // Collect in actual template
-        if(preg_match_all('/(_t\([^\)]*?\))/ms', $content, $matches)) {
-            foreach($matches[1] as $match) {
+        if (preg_match_all('/(_t\([^\)]*?\))/ms', $content, $matches)) {
+            foreach ($matches[1] as $match) {
                 $entities = array_merge($entities, $this->collectFromCode($match, $module));
             }
         }
 
-        foreach($entities as $entity => $spec) {
+        foreach ($entities as $entity => $spec) {
             unset($entities[$entity]);
             $entities[$this->normalizeEntity($entity, $module)] = $spec;
         }
@@ -382,7 +403,8 @@ class TextCollector extends Object {
     /**
      * @uses i18nEntityProvider
      */
-    public function collectFromEntityProviders($filePath, $module = null) {
+    public function collectFromEntityProviders($filePath, $module = null)
+    {
         $entities = array();
 
         // HACK Ugly workaround to avoid "Cannot redeclare class PHPUnit_Framework_TestResult" error
@@ -394,16 +416,20 @@ class TextCollector extends Object {
         $phpunitwrapper->init();
 
         $classes = ClassInfo::classes_for_file($filePath);
-        if($classes) foreach($classes as $class) {
-            // Not all classes can be instanciated without mandatory arguments,
+        if ($classes) {
+            foreach ($classes as $class) {
+                // Not all classes can be instanciated without mandatory arguments,
             // so entity collection doesn't work for all SilverStripe classes currently
             // Requires PHP 5.1+
-            if(class_exists($class) && in_array('i18nEntityProvider', class_implements($class))) {
+            if (class_exists($class) && in_array('i18nEntityProvider', class_implements($class))) {
                 $reflectionClass = new ReflectionClass($class);
-                if($reflectionClass->isAbstract()) continue;
+                if ($reflectionClass->isAbstract()) {
+                    continue;
+                }
 
                 $obj = singleton($class);
-                $entities = array_merge($entities,(array)$obj->provideI18nEntities());
+                $entities = array_merge($entities, (array)$obj->provideI18nEntities());
+            }
             }
         }
 
@@ -418,14 +444,15 @@ class TextCollector extends Object {
      * @param string $_namespace
      * @return string|boolean FALSE
      */
-    protected function normalizeEntity($fullName, $_namespace = null) {
+    protected function normalizeEntity($fullName, $_namespace = null)
+    {
         // split fullname into entity parts
         $entityParts = explode('.', $fullName);
-        if(count($entityParts) > 1) {
+        if (count($entityParts) > 1) {
             // templates don't have a custom namespace
             $entity = array_pop($entityParts);
             // namespace might contain dots, so we explode
-            $namespace = implode('.',$entityParts);
+            $namespace = implode('.', $entityParts);
         } else {
             $entity = array_pop($entityParts);
             $namespace = $_namespace;
@@ -436,7 +463,9 @@ class TextCollector extends Object {
         // and skip the processing. This is mostly used for
         // dynamically translating static properties, e.g. looping
         // through $db, which are detected by {@link collectFromEntityProviders}.
-        if($entity && strpos('$', $entity) !== FALSE) return false;
+        if ($entity && strpos('$', $entity) !== false) {
+            return false;
+        }
 
         return "{$namespace}.{$entity}";
     }
@@ -452,36 +481,47 @@ class TextCollector extends Object {
      * @param  string $folderExclude Regular expression matching folder names to exclude
      * @return array $fileList An array of files
      */
-    protected function getFilesRecursive($folder, $fileList = null, $type = null, $folderExclude = null) {
-        if(!$folderExclude) $folderExclude = '/\/(tests)$/';
-        if(!$fileList) $fileList = array();
+    protected function getFilesRecursive($folder, $fileList = null, $type = null, $folderExclude = null)
+    {
+        if (!$folderExclude) {
+            $folderExclude = '/\/(tests)$/';
+        }
+        if (!$fileList) {
+            $fileList = array();
+        }
         $items = scandir($folder);
         $isValidFolder = (
             !in_array('_manifest_exclude', $items)
             && !preg_match($folderExclude, $folder)
         );
 
-        if($items && $isValidFolder) foreach($items as $item) {
-            if(substr($item,0,1) == '.') continue;
-            if(substr($item,-4) == '.php' && (!$type || $type == 'php')) {
-                $fileList[substr($item,0,-4)] = "$folder/$item";
-            } else if(substr($item,-3) == '.ss' && (!$type || $type == 'ss')) {
-                $fileList[$item] = "$folder/$item";
-            } else if(is_dir("$folder/$item")) {
-                $fileList = array_merge(
+        if ($items && $isValidFolder) {
+            foreach ($items as $item) {
+                if (substr($item, 0, 1) == '.') {
+                    continue;
+                }
+                if (substr($item, -4) == '.php' && (!$type || $type == 'php')) {
+                    $fileList[substr($item, 0, -4)] = "$folder/$item";
+                } elseif (substr($item, -3) == '.ss' && (!$type || $type == 'ss')) {
+                    $fileList[$item] = "$folder/$item";
+                } elseif (is_dir("$folder/$item")) {
+                    $fileList = array_merge(
                     $fileList,
                     $this->getFilesRecursive("$folder/$item", $fileList, $type, $folderExclude)
                 );
+                }
             }
         }
         return $fileList;
     }
 
-    public function getDefaultLocale() {
+    public function getDefaultLocale()
+    {
         return $this->defaultLocale;
     }
 
-    public function setDefaultLocale($locale) {
+    public function setDefaultLocale($locale)
+    {
         $this->defaultLocale = $locale;
     }
 }
@@ -490,7 +530,8 @@ class TextCollector extends Object {
  * Allows serialization of entity definitions collected through {@link TextCollector}
  * into a persistent format, usually on the filesystem.
  */
-interface TextCollector_Writer {
+interface TextCollector_Writer
+{
     /**
      * @param Array $entities Map of entity names (incl. namespace) to an numeric array, with at least one element,
      *                        the original string, and an optional second element, the context.
@@ -506,36 +547,39 @@ interface TextCollector_Writer {
 /**
  * Legacy writer for 2.x style persistence.
  */
-class TextCollector_Writer_Php implements TextCollector_Writer {
+class TextCollector_Writer_Php implements TextCollector_Writer
+{
 
-    public function write($entities, $locale, $path) {
+    public function write($entities, $locale, $path)
+    {
         $php = '';
         $eol = PHP_EOL;
 
         // Create folder for lang files
         $langFolder = $path . '/lang';
-        if(!file_exists($langFolder)) {
+        if (!file_exists($langFolder)) {
             Filesystem::makeFolder($langFolder, Config::inst()->get('Filesystem', 'folder_create_mask'));
             touch($langFolder . '/_manifest_exclude');
         }
 
         // Open the English file and write the Master String Table
         $langFile = $langFolder . '/' . $locale . '.php';
-        if($fh = fopen($langFile, "w")) {
-            if($entities) foreach($entities as $fullName => $spec) {
-                $php .= $this->langArrayCodeForEntitySpec($fullName, $spec, $locale);
+        if ($fh = fopen($langFile, "w")) {
+            if ($entities) {
+                foreach ($entities as $fullName => $spec) {
+                    $php .= $this->langArrayCodeForEntitySpec($fullName, $spec, $locale);
+                }
             }
             // test for valid PHP syntax by eval'ing it
-            try{
+            try {
                 eval($php);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 throw new LogicException(
                     'TextCollector->writeMasterStringFile(): Invalid PHP language file. Error: ' . $e->toString());
             }
 
             fwrite($fh, "<"."?php{$eol}{$eol}global \$lang;{$eol}{$eol}" . $php . "{$eol}");
             fclose($fh);
-
         } else {
             throw new LogicException("Cannot write language file! Please check permissions of $langFolder/"
                 . $locale . ".php");
@@ -550,16 +594,17 @@ class TextCollector_Writer_Php implements TextCollector_Writer {
      *
      * @param string $entity The entity name, e.g. CMSMain.BUTTONSAVE
      */
-    public function langArrayCodeForEntitySpec($entityFullName, $entitySpec, $locale) {
+    public function langArrayCodeForEntitySpec($entityFullName, $entitySpec, $locale)
+    {
         $php = '';
         $eol = PHP_EOL;
 
         $entityParts = explode('.', $entityFullName);
-        if(count($entityParts) > 1) {
+        if (count($entityParts) > 1) {
             // templates don't have a custom namespace
             $entity = array_pop($entityParts);
             // namespace might contain dots, so we implode back
-            $namespace = implode('.',$entityParts);
+            $namespace = implode('.', $entityParts);
         } else {
             user_error(
                 "TextCollector::langArrayCodeForEntitySpec(): Wrong entity format for $entityFullName with values "
@@ -570,7 +615,7 @@ class TextCollector_Writer_Php implements TextCollector_Writer {
         }
 
         $value = $entitySpec[0];
-        $comment = (isset($entitySpec[1])) ? addcslashes($entitySpec[1],'\'') : null;
+        $comment = (isset($entitySpec[1])) ? addcslashes($entitySpec[1], '\'') : null;
 
         $php .= '$lang[\'' . $locale . '\'][\'' . $namespace . '\'][\'' . $entity . '\'] = ';
         $php .= (count($entitySpec) == 1) ? var_export($entitySpec[0], true) : var_export($entitySpec, true);
@@ -584,14 +629,16 @@ class TextCollector_Writer_Php implements TextCollector_Writer {
 /**
  * Writes files compatible with {@link i18nRailsYamlAdapter}.
  */
-class TextCollector_Writer_RailsYaml implements TextCollector_Writer {
+class TextCollector_Writer_RailsYaml implements TextCollector_Writer
+{
 
-    public function write($entities, $locale, $path) {
+    public function write($entities, $locale, $path)
+    {
         $content = '';
 
         // Create folder for lang files
         $langFolder = $path . '/lang';
-        if(!file_exists($langFolder)) {
+        if (!file_exists($langFolder)) {
             Filesystem::makeFolder($langFolder, Config::inst()->get('Filesystem', 'folder_create_mask'));
             touch($langFolder . '/_manifest_exclude');
         }
@@ -600,13 +647,12 @@ class TextCollector_Writer_RailsYaml implements TextCollector_Writer {
         $langFile = $langFolder . '/' . $locale . '.yml';
         if (file_exists($langFile)) {
             $existing= sfYaml::load($langFile);
-        }
-        else {
+        } else {
             $existing=null;
         }
 
-        if($fh = fopen($langFile, "w")) {
-            fwrite($fh, $this->getYaml($entities,$locale,$existing));
+        if ($fh = fopen($langFile, "w")) {
+            fwrite($fh, $this->getYaml($entities, $locale, $existing));
             fclose($fh);
         } else {
             throw new LogicException("Cannot write language file! Please check permissions of $langFile");
@@ -615,21 +661,24 @@ class TextCollector_Writer_RailsYaml implements TextCollector_Writer {
         return true;
     }
 
-    public function getYaml($entities, $locale,$existing=null) {
+    public function getYaml($entities, $locale, $existing=null)
+    {
         // Use the Zend copy of this script to prevent class conflicts when RailsYaml is included
         require_once Director::baseFolder().'/framework/thirdparty/zend_translate_railsyaml/library/Translate/Adapter/thirdparty/sfYaml/lib'
             . '/sfYamlDumper.php';
 
         // Unflatten array
         $entitiesNested = array();
-        foreach($entities as $entity => $spec) {
+        foreach ($entities as $entity => $spec) {
             // Legacy support: Don't count *.ss as namespace
             $entity = preg_replace('/\.ss\./', '___ss.', $entity);
             $parts = explode('.', $entity);
             $currLevel = &$entitiesNested;
-            while($part = array_shift($parts)) {
+            while ($part = array_shift($parts)) {
                 $part = str_replace('___ss', '.ss', $part);
-                if(!isset($currLevel[$part])) $currLevel[$part] = array();
+                if (!isset($currLevel[$part])) {
+                    $currLevel[$part] = array();
+                }
                 $currLevel = &$currLevel[$part];
             }
             $currLevel = $spec[0];
@@ -647,11 +696,9 @@ class TextCollector_Writer_RailsYaml implements TextCollector_Writer {
                         if (isset($existing[$loc][$kcontext][$klabel])) {
                             $newtrans[$loc][$kcontext][$klabel]=$existing[$loc][$kcontext][$klabel];
                         }
-
                     }
                 }
             }
-
         }
 
 
@@ -662,36 +709,43 @@ class TextCollector_Writer_RailsYaml implements TextCollector_Writer {
 /**
  * Parser that scans through a template and extracts the parameters to the _t and <%t calls
  */
-class TextCollector_Parser extends SSTemplateParser {
+class TextCollector_Parser extends SSTemplateParser
+{
 
     private static $entities = array();
 
     private static $currentEntity = array();
 
-    public function __construct($string) {
+    public function __construct($string)
+    {
         $this->string = $string;
         $this->pos = 0;
         $this->depth = 0;
         $this->regexps = array();
     }
 
-    public function Translate__construct(&$res) {
+    public function Translate__construct(&$res)
+    {
         self::$currentEntity = array(null,null,null); //start with empty array
     }
 
-    public function Translate_Entity(&$res, $sub) {
+    public function Translate_Entity(&$res, $sub)
+    {
         self::$currentEntity[0] = $sub['text']; //entity
     }
 
-    public function Translate_Default(&$res, $sub) {
+    public function Translate_Default(&$res, $sub)
+    {
         self::$currentEntity[1] = $sub['String']['text']; //value
     }
 
-    public function Translate_Context(&$res, $sub) {
+    public function Translate_Context(&$res, $sub)
+    {
         self::$currentEntity[2] = $sub['String']['text']; //comment
     }
 
-    public function Translate__finalise(&$res) {
+    public function Translate__finalise(&$res)
+    {
         // set the entity name and the value (default), as well as the context (comment)
         // priority is no longer used, so that is blank
         self::$entities[self::$currentEntity[0]] = array(self::$currentEntity[1],null,self::$currentEntity[2]);
@@ -700,12 +754,15 @@ class TextCollector_Parser extends SSTemplateParser {
     /**
      * Parses a template and returns any translatable entities
      */
-    public static function GetTranslatables($template) {
+    public static function GetTranslatables($template)
+    {
         self::$entities = array();
 
         // Run the parser and throw away the result
         $parser = new TextCollector_Parser($template);
-        if(substr($template, 0,3) == pack("CCC", 0xef, 0xbb, 0xbf)) $parser->pos = 3;
+        if (substr($template, 0, 3) == pack("CCC", 0xef, 0xbb, 0xbf)) {
+            $parser->pos = 3;
+        }
         $parser->match_TopTemplate();
 
         return self::$entities;
